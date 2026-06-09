@@ -70,17 +70,7 @@ O backend foi desenvolvido em PHP puro com MySQL.
 
 ## Fluxo
 
-Usuário
-↓
-UI (Compose)
-↓
-ViewModel
-↓
-UseCase
-↓
-Repository Switcher
-↓
-Room | API | Firebase
+Usuári -> UI (Compose) -> ViewModel -> UseCase -> Repository Switcher -> Room | API | Firebase
 
 ---
 
