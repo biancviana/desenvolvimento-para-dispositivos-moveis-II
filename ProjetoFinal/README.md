@@ -2,106 +2,74 @@
 
 Aplicativo Android para controle de transações financeiras, permitindo cadastro, edição e exclusão de receitas e despesas.
 
-O projeto foi desenvolvido com foco em arquitetura modular e demonstra integração com múltiplas fontes de dados.
+---
+
+## Requisitos da Atividade Implementados
+
+### 1. Firebase Authentication & Controle de Sessão
+* **Cadastro e Login:** Fluxo completo de criação de conta e validação de acesso com e-mail e senha.
+* **Logout Seguro:** Botão de saída integrado na `TopAppBar` que encerra a sessão ativa no Firebase de forma síncrona.
+* **Controle de Estado de Sessão:** Verificação inicial no ciclo de vida da aplicação para direcionar o usuário automaticamente para a Home caso já esteja autenticado.
+
+### 2. Cloud Firestore (Persistência Remota & CRUD)
+* **Operações CRUD Completas:** Inclusão, listagem, alteração e exclusão de transações financeiras (Entradas e Saídas).
+* **Relacionamento entre Coleções (1:N):** Cada transação criada é vinculada obrigatoriamente ao `userId` do usuário autenticado.
+* **Consultas em Tempo Real:** Listagem dinâmica utilizando `SnapshotListener` convertido em `Flow`, atualizando a interface instantaneamente a cada modificação no banco.
+
+### 3. Segurança do Firestore
+* **Regras de Leitura e Escrita:** Configuração estrita no console do Firebase garantindo que um usuário autenticado só consiga ler ou modificar documentos cujo campo `userId` seja igual ao seu próprio `UID`.
+* **Tratamento de Permissões:** Fechamento seguro de fluxos assíncronos (`callbackFlow`) ao interceptar exceções de `PERMISSION_DENIED` durante o logout.
+
+### 4. Componentes de UI (Material 3 & Jetpack Compose)
+* **Listagens Eficientes:** Uso de `LazyColumn` para renderizar o histórico de transações.
+* **Interações e Modais:** Implementação de `AlertDialog` para confirmação de exclusões e `ModalBottomSheet` para formulários.
+* **Feedback ao Usuário:** Exibição de `Snackbar` com ação de "Desfazer" (Undo) ao deletar um registro, além de `Loading states` durante a comunicação com o backend.
+
+### 5. Persistência de Preferências com DataStore
+* **Jetpack DataStore (Preferences):** Armazenamento local e assíncrono das configurações globais do aplicativo (como a escolha da fonte de dados preferida), gerenciado via fluxos (`Flow`).
 
 ---
 
-## Funcionalidades
+## Arquitetura e Tecnologias Utilizadas
 
-- Adicionar transações (receitas e despesas)
-- Editar transações
-- Remover transações
-- Resumo financeiro em tempo real
-- Troca dinâmica da fonte de dados
-- Persistência local e remota
+O projeto adota os princípios de **Clean Architecture** e o padrão de projeto **MVVM (Model-View-ViewModel)**, dividido em camadas lógicas:
+* **UI Layer:** Componentes customizados em Jetpack Compose, gerenciamento de estado imutável com `StateFlow` e ciclo de vida integrado.
+* **Domain Layer:** Contém as regras de negócio puras (Modelos de domínio e *Use Cases* independentes de frameworks).
+* **Data Layer:** Implementação dos repositórios, mapeamento de DTOs (*Data Transfer Objects*) do Firebase e persistência de dados.
 
----
+**Tecnologias:**
+* **Kotlin** (Linguagem oficial)
+* **Jetpack Compose** & **Material 3** (Interface declarativa)
+* **Koin** (Injeção de Dependência estruturada por módulos)
+* **Kotlin Coroutines & Flow** (Programação assíncrona e reativa)
+* **Firebase (Auth & Firestore)** (Backend as a Service)
 
-### Data Layer
+## Telas
 
-Responsável por acessar diferentes fontes de dados:
-
-- Room (Banco local SQLite)
-- API REST (PHP + MySQL)
-- Firebase Firestore
-
----
-
-## Troca de fonte de dados
-
-O app implementa um **Repository Switcher**, permitindo alternar a origem dos dados em tempo de execução.
-
-A escolha é persistida via `DataStore Preferences`.
-
-Fontes disponíveis:
-
-- Room (Local)
-- API REST (Backend PHP)
-- Firebase Firestore
+### 1. Estado Inicial (Sem Usuários)
+![provando que não existe usuário no firebase](https://github.com/user-attachments/assets/c228787b-397d-4a65-9525-7da8547a21a5)
+*Comprova que o console do Firebase Authentication não possuía nenhum usuário cadastrado antes do início do teste.*
 
 ---
 
-## Tecnologias utilizadas
-
-- Kotlin
-- Jetpack Compose
-- MVVM
-- Koin (Dependency Injection)
-- Room
-- Retrofit
-- Firebase Firestore
-- DataStore Preferences
-- PHP + MySQL (backend)
+### 2. Criação de Conta no Emulador
+![criando nova conta](https://github.com/user-attachments/assets/173e964c-0e4c-45c7-9b12-5bae0befbfeb)
+*Interface do formulário de cadastro preenchido e executado dentro do aplicativo.*
 
 ---
 
-## Backend (API REST)
-
-O backend foi desenvolvido em PHP puro com MySQL.
-
-### Endpoints:
-
-- `GET /transactions.php` → listar transações
-- `POST /insert_transaction.php` → inserir transação
-- `PUT /update_transaction.php` → atualizar transação
-- `DELETE /delete_transaction.php` → remover transação
+### 3. Usuário Cadastrado com Sucesso
+![provando que após o cadastro, a conta foi criada](https://github.com/user-attachments/assets/01fc8a98-f12e-4891-b9c5-f6c241ca1d6b)
+*Console do Firebase atualizado em tempo real, confirmando a persistência do e-mail e geração do UID único.*
 
 ---
 
-## Fluxo
-
-Usuári -> UI (Compose) -> ViewModel -> UseCase -> Repository Switcher -> Room | API | Firebase
-
----
-
-
-
-Tabela `transactions`:
-
-```sql
-CREATE TABLE transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    description VARCHAR(255),
-    amount DOUBLE,
-    date DATETIME,
-    type VARCHAR(20)
-);
-```
+### 4. Validação de Credenciais Inválidas
+![tentando logar sem ter cadastro](https://github.com/user-attachments/assets/b66c1d6f-fde1-4007-bf39-1084ef3ffd5a)
+*Tratamento de erro obrigatório exibindo feedback visual na interface ao tentar autenticar com dados incorretos.*
 
 ---
 
-## Interface
-
-<img width="372" height="636" alt="tela inicial" src="https://github.com/user-attachments/assets/fb2d9c18-a4a5-4769-acdd-b9cfa0bcb29b" />
-
-<img width="382" height="637" alt="seleção de fonte de dados" src="https://github.com/user-attachments/assets/0aeef9d7-2ece-45ce-875a-26b14ea7d791" />
-
-<img width="395" height="677" alt="salario room" src="https://github.com/user-attachments/assets/46ce3edb-ae9f-4681-9259-08fe72e968da" />
-
-<img width="396" height="670" alt="salario api" src="https://github.com/user-attachments/assets/d35111a9-7499-4686-a7ec-d7c7fa65e00b" />
-
-<img width="401" height="682" alt="salario firebase" src="https://github.com/user-attachments/assets/75b3e0bd-51aa-40f8-b6d8-960e4ec48104" />
-
-<img width="1451" height="472" alt="salario firebase console" src="https://github.com/user-attachments/assets/f89718f2-cd3a-4787-a70f-39cad03be35a" />
-
-<img width="772" height="167" alt="salario api dbeaver" src="https://github.com/user-attachments/assets/d55370df-fd62-4764-8f7f-3b78c2b71b09" />
+### 5. Tela Principal (Área Logada)
+![usuário autenticado](https://github.com/user-attachments/assets/25aaf081-a81b-4dda-ada3-eda16ff91267)
+*Acesso concedido à dashboard principal (Home) do Finance App após a validação do controle de sessão.*
